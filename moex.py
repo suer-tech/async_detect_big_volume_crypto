@@ -29,6 +29,7 @@ def subscribe_and_save_price(asset, result_prices_arr):
 
     if asset['code'] not in result_prices_arr:
         print(f"Котировки для {asset['code']} не пришли после {MAX_ATTEMPTS} попыток.")
+        return False
 
     fp_provider.unsubscribe_order_book('orderbook1', asset['code'], asset['board'])
     fp_provider.close_channel()
@@ -92,6 +93,17 @@ def write_spread(currience, diff):
         spread_str = json.dumps(spread_obj, ensure_ascii=False)  # Преобразование в строку JSON
         file.write(spread_str + '\n')  # Запись строки в файл с добавлением новой строки
 
+
+def write_connection_error(currience, diff):
+    txt = 'usd.txt'
+    if currience == eur:
+        txt = 'eur.txt'
+    if currience == cny:
+        txt = 'cny.txt'
+
+    with open(txt, 'w', encoding='utf-8') as file:
+        pass
+        file.write(diff)
 
 def write_all_spread():
     currencies = ['USD', 'EUR', 'CNY']
@@ -157,31 +169,46 @@ while True:
     # Подпишитесь на стакан для каждого актива
     for asset in usd:
         subscribe_and_save_price(asset, usd_prices)
+        if not subscribe_and_save_price(asset, usd_prices):
+            write_connection_error(usd, "Котировки отсутствуют")
+            # Если subscribe_and_save_price вернуло False, перезапустите цикл
+            continue
 
     # В asset_prices будут сохранены цены активов
     print(usd_prices)
     diff = calculate_difference(usd, usd_prices)
-    write_spread(usd, diff)
+    if diff is not None:
+        write_spread(usd, diff)
 
 
     # Подпишитесь на стакан для каждого актива
     for asset in eur:
         subscribe_and_save_price(asset, eur_prices)
+        if not subscribe_and_save_price(asset, eur_prices):
+            write_connection_error(eur, "Котировки отсутствуют")
+            # Если subscribe_and_save_price вернуло False, перезапустите цикл
+            continue
 
     # В asset_prices будут сохранены цены активов
     print(eur_prices)
     diff = calculate_difference(eur, eur_prices)
-    write_spread(eur, diff)
+    if diff is not None:
+        write_spread(eur, diff)
 
 
     # Подпишитесь на стакан для каждого актива
     for asset in cny:
         subscribe_and_save_price(asset, cny_prices)
+        if not subscribe_and_save_price(asset, cny_prices):
+            write_connection_error(cny, "Котировки отсутствуют")
+            # Если subscribe_and_save_price вернуло False, перезапустите цикл
+            continue
 
     # В asset_prices будут сохранены цены активов
     print(cny_prices)
     diff = calculate_difference(cny, cny_prices)
-    write_spread(cny, diff)
+    if diff is not None:
+        write_spread(cny, diff)
 
     # Запись всех спредов в один файл
     write_all_spread()
