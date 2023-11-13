@@ -12,11 +12,11 @@ from binance.client import Client
 from binance.um_futures import UMFutures
 from urllib3.exceptions import ReadTimeoutError
 import threading
-import pstats
+
 
 limit = 500
 median_x = 3
-buy_sell_ratio_x = 7
+buy_sell_ratio_x = 2
 
 
 # Переводим время в удобочитаемый вид-----------------------------------------------------------------------------
@@ -200,134 +200,134 @@ createTxtFile('signal_vol.txt')
 
 start_time = time.time()
 
-# while True:
-index = []
-select = []
-try:
-    symb_index = get_symbolPrice_ticker()
-    for symb in symb_index:
-        if symb['symbol'].endswith('USDT'):
-            index.append(symb['symbol'])
-    print(len(index))
+while True:
+    index = []
+    select = []
+    try:
+        symb_index = get_symbolPrice_ticker()
+        for symb in symb_index:
+            if symb['symbol'].endswith('USDT'):
+                index.append(symb['symbol'])
+        print(len(index))
 
-    for sym in index:
-        try:
-            ratio = get_buy_sell_ratio(sym, '1h', 500)  # получаем данные по обьемам всех свечек за период
-            ratio_last = ratio[-2]  # получаем данные по обьемам последней закрытой свечки за период
-            checked_last = calculate_central_tendency(ratio, ratio_last)  # сравниваем обьем на последней свечке и если он больше среднеиго то возвращаем эту свечку
+        for sym in index:
+            try:
+                ratio = get_buy_sell_ratio(sym, '1h', 500)  # получаем данные по обьемам всех свечек за период
+                ratio_last = ratio[-2]  # получаем данные по обьемам последней закрытой свечки за период
+                checked_last = calculate_central_tendency(ratio, ratio_last)  # сравниваем обьем на последней свечке и если он больше среднеиго то возвращаем эту свечку
 
-            if checked_last:
-                diff_procent = check_diff_procent(sym, '1h', 500)  # считаем высоту всех свечек за период
-                diff_procent_last = diff_procent[-2]  # получаем высоту последней свечки за период
-                value_last = next(iter(diff_procent_last.values()))  # получаем высоту последней свечки за период
-                mediana = calculate_median(diff_procent)  # считаем среднюю высоту свечки за период
+                if checked_last:
+                    diff_procent = check_diff_procent(sym, '1h', 500)  # считаем высоту всех свечек за период
+                    diff_procent_last = diff_procent[-2]  # получаем высоту последней свечки за период
+                    value_last = next(iter(diff_procent_last.values()))  # получаем высоту последней свечки за период
+                    mediana = calculate_median(diff_procent)  # считаем среднюю высоту свечки за период
 
-                if mediana * median_x > float(value_last):
-                    this_time = datetime.datetime.now()  # Получаем текущее время
-                    time_signal = datetime.datetime.strptime(convert_time(ratio_last['timestamp']), "%Y-%m-%d %H:%M:%S %Z")
+                    if mediana * median_x > float(value_last):
+                        this_time = datetime.datetime.now()  # Получаем текущее время
+                        time_signal = datetime.datetime.strptime(convert_time(ratio_last['timestamp']), "%Y-%m-%d %H:%M:%S %Z")
 
-                    t_vol = this_time - time_signal
-                    print(sym)
-
-                    # Сигнал большого обьема----------------------------
-                    if t_vol.total_seconds() <= 94000:  # 900 секунд = 15 минут
-                        for symb in symb_index:
-                            if symb['symbol'] == sym:
-                                price = symb['price']
-
-                                long = {
-                                    '1 tvh': float(price),
-                                    '2 tvh': float(price) - float(price) / 100 * 2,
-                                    '3 tvh': float(price) - float(price) / 100 * 4,
-                                    'stop': float(price) - float(price) / 100 * 5.5,
-                                    'take': float(price) + float(price) / 100 * 2,
-                                }
-
-                                short = {
-                                    '1 tvh': float(price),
-                                    '2 tvh': float(price) + float(price) / 100 * 2,
-                                    '3 tvh': float(price) + float(price) / 100 * 4,
-                                    'stop': float(price) + float(price) / 100 * 5.5,
-                                    'take': float(price) - float(price) / 100 * 2,
-                                }
-
-                        with open('signal_vol.txt', 'w', encoding='utf-8') as fw:
-                            mess = f"{emoji.emojize(':antenna_bars:Скачок объема торгов')}\n{emoji.emojize(':check_mark_button:')}{sym}\n"
-                            fw.write(mess)
-                            fw.write(f"\nLong\n")
-                            for key, value in long.items():
-                                fw.write(f"{key}: {value}\n")
-
-                            fw.write(f"\nShort\n")
-                            for key, value in short.items():
-                                fw.write(f"{key}: {value}\n")
+                        t_vol = this_time - time_signal
                         print(sym)
-                        # Устанавливаем флаг как метку времени текущего актива
-                        signal_recorded[sym] = time.time()
+
+                        # Сигнал большого обьема----------------------------
+                        if t_vol.total_seconds() <= 94000:  # 900 секунд = 15 минут
+                            for symb in symb_index:
+                                if symb['symbol'] == sym:
+                                    price = symb['price']
+
+                                    long = {
+                                        '1 tvh': float(price),
+                                        '2 tvh': float(price) - float(price) / 100 * 2,
+                                        '3 tvh': float(price) - float(price) / 100 * 4,
+                                        'stop': float(price) - float(price) / 100 * 5.5,
+                                        'take': float(price) + float(price) / 100 * 2,
+                                    }
+
+                                    short = {
+                                        '1 tvh': float(price),
+                                        '2 tvh': float(price) + float(price) / 100 * 2,
+                                        '3 tvh': float(price) + float(price) / 100 * 4,
+                                        'stop': float(price) + float(price) / 100 * 5.5,
+                                        'take': float(price) - float(price) / 100 * 2,
+                                    }
+
+                            with open('signal_vol.txt', 'w', encoding='utf-8') as fw:
+                                mess = f"{emoji.emojize(':antenna_bars:Скачок объема торгов')}\n{emoji.emojize(':check_mark_button:')}{sym}\n"
+                                fw.write(mess)
+                                fw.write(f"\nLong\n")
+                                for key, value in long.items():
+                                    fw.write(f"{key}: {value}\n")
+
+                                fw.write(f"\nShort\n")
+                                for key, value in short.items():
+                                    fw.write(f"{key}: {value}\n")
+                            print(sym)
+                            # Устанавливаем флаг как метку времени текущего актива
+                            signal_recorded[sym] = time.time()
 
 
-        except ZeroDivisionError as err:
-            continue
-        except IndexError as err:
-            continue
+            except ZeroDivisionError as err:
+                continue
+            except IndexError as err:
+                continue
 
-    end_time = time.time()
+        end_time = time.time()
 
-    elapsed_time = end_time - start_time
-    print(f"Время выполнения бесконечного цикла: {elapsed_time} секунд")
+        elapsed_time = end_time - start_time
+        print(f"Время выполнения бесконечного цикла: {elapsed_time} секунд")
 
-except binance.error.ClientError as err:
-    print('ReduceOnly Order is rejected')
-    with open('error.txt', 'w') as fw:
-        json.dump('ReduceOnly Order is rejected', fw)
-        time.sleep(3)
-        pass
-    time.sleep(5)
-# except requests.exceptions.ConnectionError as err:
-#     print('Connection reset by peer')
-#     with open('error.txt', 'w') as fw:
-#         json.dump('Connection reset by peer', fw)
-#         time.sleep(3)
-#         pass
-#     time.sleep(5)
-# except binance.error.ServerError as err:
-#     print('binance.error.ServerError')
-#     with open('error.txt', 'w') as fw:
-#         json.dump('binance.error.ServerError', fw)
-#         time.sleep(3)
-#         pass
-#     time.sleep(5)
-#
-# except TypeError as err:
-#     print('TypeError')
-#     with open('error.txt', 'w') as fw:
-#         json.dump('TypeError', fw)
-#         time.sleep(3)
-#         pass
-#     time.sleep(5)
-# except ReadTimeoutError as err:
-#     print('ReadTimeoutError')
-#     with open('error.txt', 'w') as fw:
-#         json.dump('ReadTimeoutError', fw)
-#         time.sleep(3)
-#         pass
-#     time.sleep(5)
-# except json.decoder.JSONDecodeError as err:
-#     print('json.decoder.JSONDecodeError')
-#     with open('error.txt', 'w') as fw:
-#         json.dump('json.decoder.JSONDecodeError', fw)
-#         time.sleep(3)
-#         pass
-#     time.sleep(5)
-except urllib3.exceptions.MaxRetryError as err:
-    print('urllib3.exceptions.MaxRetryError')
-    with open('error.txt', 'w') as fw:
-        json.dump('urllib3.exceptions.MaxRetryError', fw)
-        time.sleep(3)
-        pass
-    time.sleep(5)
+    except binance.error.ClientError as err:
+        print('ReduceOnly Order is rejected')
+        with open('error.txt', 'w') as fw:
+            json.dump('ReduceOnly Order is rejected', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    # except requests.exceptions.ConnectionError as err:
+    #     print('Connection reset by peer')
+    #     with open('error.txt', 'w') as fw:
+    #         json.dump('Connection reset by peer', fw)
+    #         time.sleep(3)
+    #         pass
+    #     time.sleep(5)
+    # except binance.error.ServerError as err:
+    #     print('binance.error.ServerError')
+    #     with open('error.txt', 'w') as fw:
+    #         json.dump('binance.error.ServerError', fw)
+    #         time.sleep(3)
+    #         pass
+    #     time.sleep(5)
+    #
+    # except TypeError as err:
+    #     print('TypeError')
+    #     with open('error.txt', 'w') as fw:
+    #         json.dump('TypeError', fw)
+    #         time.sleep(3)
+    #         pass
+    #     time.sleep(5)
+    # except ReadTimeoutError as err:
+    #     print('ReadTimeoutError')
+    #     with open('error.txt', 'w') as fw:
+    #         json.dump('ReadTimeoutError', fw)
+    #         time.sleep(3)
+    #         pass
+    #     time.sleep(5)
+    # except json.decoder.JSONDecodeError as err:
+    #     print('json.decoder.JSONDecodeError')
+    #     with open('error.txt', 'w') as fw:
+    #         json.dump('json.decoder.JSONDecodeError', fw)
+    #         time.sleep(3)
+    #         pass
+    #     time.sleep(5)
+    except urllib3.exceptions.MaxRetryError as err:
+        print('urllib3.exceptions.MaxRetryError')
+        with open('error.txt', 'w') as fw:
+            json.dump('urllib3.exceptions.MaxRetryError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
 
-    # time.sleep(60)
+    time.sleep(60)
 
 
 
