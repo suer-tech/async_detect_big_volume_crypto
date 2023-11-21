@@ -212,58 +212,61 @@ while True:
 
         for sym in index:
             try:
-                ratio = get_buy_sell_ratio(sym, '1h', 500)  # получаем данные по обьемам всех свечек за период
-                ratio_last = ratio[-2]  # получаем данные по обьемам последней закрытой свечки за период
-                checked_last = calculate_central_tendency(ratio, ratio_last)  # сравниваем обьем на последней свечке и если он больше среднеиго то возвращаем эту свечку
+                if sym not in signal_recorded:
+                    ratio = get_buy_sell_ratio(sym, '1h', 500)  # получаем данные по обьемам всех свечек за период
+                    ratio_last = ratio[-2]  # получаем данные по обьемам последней закрытой свечки за период
+                    checked_last = calculate_central_tendency(ratio, ratio_last)  # сравниваем обьем на последней свечке и если он больше среднеиго то возвращаем эту свечку
 
-                if checked_last:
-                    diff_procent = check_diff_procent(sym, '1h', 500)  # считаем высоту всех свечек за период
-                    diff_procent_last = diff_procent[-2]  # получаем высоту последней свечки за период
-                    value_last = next(iter(diff_procent_last.values()))  # получаем высоту последней свечки за период
-                    mediana = calculate_median(diff_procent)  # считаем среднюю высоту свечки за период
+                    if checked_last:
+                        diff_procent = check_diff_procent(sym, '1h', 500)  # считаем высоту всех свечек за период
+                        diff_procent_last = diff_procent[-2]  # получаем высоту последней свечки за период
+                        value_last = next(iter(diff_procent_last.values()))  # получаем высоту последней свечки за период
+                        mediana = calculate_median(diff_procent)  # считаем среднюю высоту свечки за период
 
-                    if mediana * median_x > float(value_last):
-                        this_time = datetime.datetime.now()  # Получаем текущее время
-                        time_signal = datetime.datetime.strptime(convert_time(ratio_last['timestamp']), "%Y-%m-%d %H:%M:%S %Z")
+                        if mediana * median_x > float(value_last):
+                            this_time = datetime.datetime.now()  # Получаем текущее время
+                            time_signal = datetime.datetime.strptime(convert_time(ratio_last['timestamp']), "%Y-%m-%d %H:%M:%S %Z")
 
-                        t_vol = this_time - time_signal
-                        print(sym)
-
-                        # Сигнал большого обьема----------------------------
-                        if t_vol.total_seconds() <= 94000:  # 900 секунд = 15 минут
-                            for symb in symb_index:
-                                if symb['symbol'] == sym:
-                                    price = symb['price']
-
-                                    long = {
-                                        '1 tvh': float(price),
-                                        '2 tvh': float(price) - float(price) / 100 * 2,
-                                        '3 tvh': float(price) - float(price) / 100 * 4,
-                                        'stop': float(price) - float(price) / 100 * 5.5,
-                                        'take': float(price) + float(price) / 100 * 2,
-                                    }
-
-                                    short = {
-                                        '1 tvh': float(price),
-                                        '2 tvh': float(price) + float(price) / 100 * 2,
-                                        '3 tvh': float(price) + float(price) / 100 * 4,
-                                        'stop': float(price) + float(price) / 100 * 5.5,
-                                        'take': float(price) - float(price) / 100 * 2,
-                                    }
-
-                            with open('signal_vol.txt', 'w', encoding='utf-8') as fw:
-                                mess = f"{emoji.emojize(':antenna_bars:Скачок объема торгов')}\n{emoji.emojize(':check_mark_button:')}{sym}\n"
-                                fw.write(mess)
-                                fw.write(f"\nLong\n")
-                                for key, value in long.items():
-                                    fw.write(f"{key}: {value}\n")
-
-                                fw.write(f"\nShort\n")
-                                for key, value in short.items():
-                                    fw.write(f"{key}: {value}\n")
+                            t_vol = this_time - time_signal
                             print(sym)
-                            # Устанавливаем флаг как метку времени текущего актива
-                            signal_recorded[sym] = time.time()
+
+                            # Сигнал большого обьема----------------------------
+                            if t_vol.total_seconds() <= 4500:  # 900 секунд = 15 минут
+                                for symb in symb_index:
+                                    if symb['symbol'] == sym:
+                                        price = symb['price']
+
+                                        long = {
+                                            '1 tvh': float(price),
+                                            '2 tvh': float(price) - float(price) / 100 * 2,
+                                            '3 tvh': float(price) - float(price) / 100 * 4,
+                                            'stop': float(price) - float(price) / 100 * 5.5,
+                                            'take': float(price) + float(price) / 100 * 2,
+                                        }
+
+                                        short = {
+                                            '1 tvh': float(price),
+                                            '2 tvh': float(price) + float(price) / 100 * 2,
+                                            '3 tvh': float(price) + float(price) / 100 * 4,
+                                            'stop': float(price) + float(price) / 100 * 5.5,
+                                            'take': float(price) - float(price) / 100 * 2,
+                                        }
+
+                                with open('signal_vol.txt', 'w', encoding='utf-8') as fw:
+                                    mess = f"{emoji.emojize(':antenna_bars:Скачок объема торгов')}\n{emoji.emojize(':check_mark_button:')}{sym}\n"
+                                    fw.write(mess)
+                                    fw.write(f"\nLong\n")
+                                    for key, value in long.items():
+                                        fw.write(f"{key}: {value}\n")
+
+                                    fw.write(f"\nShort\n")
+                                    for key, value in short.items():
+                                        fw.write(f"{key}: {value}\n")
+                                print(sym)
+                                # Устанавливаем флаг как метку времени текущего актива
+                                signal_recorded[sym] = time.time()
+                else:
+                    continue
 
 
             except ZeroDivisionError as err:
