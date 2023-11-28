@@ -1,1 +1,0 @@
-tinkoff = 't.ZsrYdAC-An0uyHnudfvRJ2MVp39P77b7I7MNsCa3p5zPFpi0xbvLraeMSjQEAdwXN4xaSlCE-w_M6kWlsMpKkA'
