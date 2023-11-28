@@ -23,52 +23,49 @@ currencies = [{
 comodities = [{
     'name': 'Золото',
     'url': "https://ru.investing.com/commodities/gold",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526]"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
 
 },
 {
     'name': 'Нефть BRENT',
     'url': "https://ru.investing.com/commodities/brent-oil",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
 },
 {
     'name': 'Natural GAS',
     'url': "https://ru.investing.com/commodities/natural-gas",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'day': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'year': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[5]/div[1]/dl[1]/div[5]/dd/span/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
+
 },
 ]
 
 index = [{
     'name': 'Индекс Мосбиржи',
     'url': "https://ru.investing.com/indices/mcx",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
 },
 {
     'name': 'S&P 500',
     'url': "https://ru.investing.com/indices/us-spx-500",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
 },
 {
     'name': 'DAX',
     'url': "https://ru.investing.com/indices/germany-30",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'day': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'year': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[5]/div[1]/dl[1]/div[5]/dd/span/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
+
 },
 {
     'name': 'Shanghai Composite',
     'url': "https://ru.investing.com/indices/shanghai-composite",
-    'xpath': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[1]',
-    'xpath_proc': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'day': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[1]/div[3]/div/div[1]/div[1]/div[2]/span[2]',
-    'year': '//*[@id="__next"]/div[2]/div[2]/div[2]/div[1]/div[5]/div[1]/dl[1]/div[5]/dd/span/span[2]',
+    'xpath': '//div[@class="text-5xl/9 font-bold md:text-[42px] md:leading-[60px] text-[#232526] bg-negative-light"]',
+    'xpath_proc': '//span[@data-test="instrument-price-change-percent"]',
+
 },
 ]
