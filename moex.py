@@ -1,50 +1,67 @@
-import json
-import time
-import emoji
-from FinamPy import FinamPy
-from FinamPy.Config import Config
 from datetime import datetime
 import pytz
 import re
+import json
+import time
+import emoji
+from tinkoff.invest.services import MarketDataStreamManager
 
-MAX_ATTEMPTS = 10
-WAIT_INTERVAL_SECONDS = 2
+from tinkoff.invest import (
+    CandleInstrument,
+    Client,
+    InfoInstrument,
+    SubscriptionInterval,
+)
+from config import tinkoff
+
+
+TOKEN = tinkoff
+
+#
+# def main():
+#     with Client(TOKEN) as client:
+#         client.getLatestPrices()
+#         inst = client.instruments.currencies()
+#         print(inst)
+#         for cur in inst.instruments:
+#             print(cur)
+#             print('')
+# main()
+
 
 def subscribe_and_save_price(asset, result_prices_arr):
-    fp_provider = FinamPy(Config.AccessToken)
     print(asset)
+    with Client(TOKEN) as client:
+        market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
+        market_data_stream.candles.waiting_close().subscribe(
+            [
+                CandleInstrument(
+                    figi=asset['code'],
+                    interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
+                )
+            ]
+        )
 
-    def on_order_book(order_book):
-        if asset['code'] not in result_prices_arr:
-            result_prices_arr[asset['code']] = order_book.asks[0].price
+        for marketdata in market_data_stream:
+            if marketdata.candle:
+                last_price = marketdata.candle.close
 
-    fp_provider.on_order_book = on_order_book
-    fp_provider.subscribe_order_book(asset['code'], asset['board'], 'orderbook1')
+                last_price_units = last_price.units
+                last_price_nano = last_price.nano
 
-    # Добавьте цикл ожидания с ограничением по попыткам
-    attempts = 0
-    while asset['code'] not in result_prices_arr and attempts < MAX_ATTEMPTS:
-        time.sleep(WAIT_INTERVAL_SECONDS)
-        attempts += 1
+                # Преобразование в число с учетом nano
+                numeric_value = float(f"{last_price_units}.{last_price_nano}")
 
-    if asset['code'] not in result_prices_arr:
-        print(f"Котировки для {asset['code']} не пришли после {MAX_ATTEMPTS} попыток.")
-        return False
 
-    fp_provider.unsubscribe_order_book('orderbook1', asset['code'], asset['board'])
-    fp_provider.close_channel()
+                if asset['code'] not in result_prices_arr:
+
+                    print(numeric_value)
+                    return numeric_value
+                else:
+                    return None
+
 
 def calculate_difference(currience, basket_price):
-
-    now_utc = datetime.now(pytz.utc)
-
-    # Преобразование времени в московское время
-    moscow_timezone = pytz.timezone("Europe/Moscow")
-    moscow_time = now_utc.astimezone(moscow_timezone)
-
-    # Удаление секунд и микросекунд
-    moscow_time = moscow_time.replace(second=0, microsecond=0)
-
     if currience == usd:
         quarterly = 'Si'
         perpetual = 'USDRUBF'
@@ -61,40 +78,47 @@ def calculate_difference(currience, basket_price):
         x = 1
 
     # Проверка, что в списке есть как минимум три элемента
-    if len(basket_price) >= 3:
-        # Получаем второй и третий элементы
-        values = list(basket_price.values())
-        first_element = values[0]
-        second_element = values[1]
-        third_element = values[2]
+    if len(basket_price) >= 2:
+        if currience != eur:
+            # Получаем второй и третий элементы
+            values = list(basket_price.values())
+            first_element = values[0]
+            second_element = values[1]
+            third_element = values[2]
 
-        # Извлекаем значения из элементов
-        value_first = float(first_element)
-        value_second = float(second_element)
-        value_third = float(third_element) / x
+            # Извлекаем значения из элементов
+            value_first = float(first_element)
+            value_second = float(second_element)
+            value_third = float(third_element) / x
+
+        else:
+            values = list(basket_price.values())
+            second_element = values[0]
+            third_element = values[1]
+
+            # Извлекаем значения из элементов
+            value_second = float(second_element)
+            value_third = float(third_element) / x
 
         # Вычисляем разницу
         difference = "{:.3f}".format(value_third - value_second)
-        result = f"[{moscow_time}, {difference}]"
+        result = f"Спред {quarterly} - {perpetual}: {difference}\n"
+
+        if currience != eur:
+            if float(second_element) > float(first_element):
+                difference1 = f"{perpetual}: {'{:.3f}'.format(value_second)} > cпот: {'{:.3f}'.format(value_first)}\n"
+            if float(second_element) < float(first_element):
+                difference1 = f"Cпот: {'{:.3f}'.format(value_first)} > {perpetual}: {'{:.3f}'.format(value_second)}\n"
+            if '{:.3f}'.format(float(second_element)) == '{:.3f}'.format(float(first_element)):
+                difference1 = f"Cпот: {'{:.3f}'.format(value_first)} = {perpetual}: {'{:.3f}'.format(value_second)}\n"
+
+            result = result + difference1
 
         print(result)
 
         return result
 
 def write_spread(currience, diff):
-    txt = 'usd.txt'
-    if currience == eur:
-        txt = 'eur.txt'
-    if currience == cny:
-        txt = 'cny.txt'
-
-    with open(txt, 'a', encoding='utf-8') as file:
-        spread_obj = {"data": diff}
-        spread_str = json.dumps(spread_obj, ensure_ascii=False)  # Преобразование в строку JSON
-        file.write(spread_str + '\n')  # Запись строки в файл с добавлением новой строки
-
-
-def write_connection_error(currience, diff):
     txt = 'usd.txt'
     if currience == eur:
         txt = 'eur.txt'
@@ -132,34 +156,38 @@ def createTxtFile(txt_file):
 
 usd = (
 
-    {'board': 'CETS', 'code': 'USD000UTSTOM'},  # USDRUB
-    {'board': 'FUT', 'code': 'USDRUBF'},
-    {'board': 'FUT', 'code': 'SiZ3'}  # SIZ3
+    {'code': 'BBG0013HGFT4'},  # USDRUB
+    {'code': 'FUTUSDRUBF00'},
+    {'code': 'FUTSI1223000'}  # SIZ3
 )
 
 eur = (
 
-    {'board': 'CETS', 'code': 'EUR_RUB__TOM'},  # USDRUB
-    {'board': 'FUT', 'code': 'EURRUBF'},
-    {'board': 'FUT', 'code': 'EuZ3'}  # SIZ3
+
+    {'code': 'FUTEURRUBF00'},
+    {'code': 'FUTEU1223000'}  # SIZ3
 )
 
 cny = (
 
-    {'board': 'CETS', 'code': 'CNYRUB_TOM'},  # USDRUB
-    {'board': 'FUT', 'code': 'CNYRUBF'},
-    {'board': 'FUT', 'code': 'CRZ3'}  # SIZ3
+    {'code': 'BBG0013HRTL0'},  # USDRUB
+    {'code': 'FUTCNYRUBF00'},
+    {'code': 'FUTCNY122300'}  # SIZ3
 )
 
+# Создаем файлы для оповещения по сигналу
+createTxtFile('usd_firstspread_and_signal.txt')
+createTxtFile('eur_firstspread_and_signal.txt')
+createTxtFile('cny_firstspread_and_signal.txt')
 
 while True:
 
-    createTxtFile('usd.txt')
-    createTxtFile('eur.txt')
-    createTxtFile('cny.txt')
-    createTxtFile('all_spread.txt')
 
-    spread_arr = []
+    try:
+        f = open('sig_proc.txt', 'r')
+    except FileNotFoundError as err:
+        with open('sig_proc.txt', 'w') as fw:
+            pass
 
     # Создайте словарь для сохранения цен активов
     usd_prices = {}
@@ -168,14 +196,13 @@ while True:
 
     # Подпишитесь на стакан для каждого актива
     for asset in usd:
-        subscribe_and_save_price(asset, usd_prices)
-        if not subscribe_and_save_price(asset, usd_prices):
-            write_connection_error(usd, "Котировки отсутствуют")
-            # Если subscribe_and_save_price вернуло False, перезапустите цикл
-            continue
+        if asset['code'] not in usd:
+            price = subscribe_and_save_price(asset, usd_prices)
+            if price != None:
+                usd_prices[asset['code']] = price
+    print(usd_prices)
 
     # В asset_prices будут сохранены цены активов
-    print(usd_prices)
     diff = calculate_difference(usd, usd_prices)
     if diff is not None:
         write_spread(usd, diff)
@@ -183,14 +210,13 @@ while True:
 
     # Подпишитесь на стакан для каждого актива
     for asset in eur:
-        subscribe_and_save_price(asset, eur_prices)
-        if not subscribe_and_save_price(asset, eur_prices):
-            write_connection_error(eur, "Котировки отсутствуют")
-            # Если subscribe_and_save_price вернуло False, перезапустите цикл
-            continue
+        if asset['code'] not in eur:
+            price = subscribe_and_save_price(asset, usd_prices)
+            if price != None:
+                eur_prices[asset['code']] = price
+    print(eur_prices)
 
     # В asset_prices будут сохранены цены активов
-    print(eur_prices)
     diff = calculate_difference(eur, eur_prices)
     if diff is not None:
         write_spread(eur, diff)
@@ -198,14 +224,13 @@ while True:
 
     # Подпишитесь на стакан для каждого актива
     for asset in cny:
-        subscribe_and_save_price(asset, cny_prices)
-        if not subscribe_and_save_price(asset, cny_prices):
-            write_connection_error(cny, "Котировки отсутствуют")
-            # Если subscribe_and_save_price вернуло False, перезапустите цикл
-            continue
+        if asset['code'] not in cny:
+            price = subscribe_and_save_price(asset, cny_prices)
+            if price != None:
+                cny_prices[asset['code']] = price
+    print(cny_prices)
 
     # В asset_prices будут сохранены цены активов
-    print(cny_prices)
     diff = calculate_difference(cny, cny_prices)
     if diff is not None:
         write_spread(cny, diff)
