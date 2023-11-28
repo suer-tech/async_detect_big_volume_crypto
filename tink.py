@@ -1,9 +1,5 @@
-from datetime import datetime
-import pytz
 import re
-import json
-import time
-import emoji
+
 from tinkoff.invest.services import MarketDataStreamManager
 
 from tinkoff.invest import (
@@ -13,7 +9,6 @@ from tinkoff.invest import (
     SubscriptionInterval,
 )
 from config import tinkoff
-
 
 TOKEN = tinkoff
 
@@ -27,6 +22,13 @@ TOKEN = tinkoff
 #             print(cur)
 #             print('')
 # main()
+
+#
+import json
+import time
+import emoji
+
+
 
 
 def subscribe_and_save_price(asset, result_prices_arr):
@@ -146,6 +148,8 @@ def write_all_spread():
                     all_file.write(spread_str)
 
 
+
+
 # Создаем файлы под запрос пользователя о позах-----------------------------------------------------------------------------
 def createTxtFile(txt_file):
     try:
@@ -176,9 +180,10 @@ cny = (
 )
 
 # Создаем файлы для оповещения по сигналу
-createTxtFile('usd_firstspread_and_signal.txt')
-createTxtFile('eur_firstspread_and_signal.txt')
-createTxtFile('cny_firstspread_and_signal.txt')
+createTxtFile('USD.txt')
+createTxtFile('EUR.txt')
+createTxtFile('CNY.txt')
+
 
 while True:
 
@@ -240,4 +245,3 @@ while True:
 
 
     time.sleep(2)
-

@@ -63,14 +63,14 @@ while True:
 
     comoditi_arr = []
     for comod in comodities:
-        item = get_price_com(comod['name'], comod['url'], comod['xpath'], comod['xpath_proc'])
+        item = get_price(comod['name'], comod['url'], comod['xpath'], comod['xpath_proc'])
         comoditi_arr.append(item)
 
     print(comoditi_arr)
 
     index_arr = []
     for ind in index:
-        item = get_price_com(ind['name'], ind['url'], ind['xpath'], ind['xpath_proc'])
+        item = get_price(ind['name'], ind['url'], ind['xpath'], ind['xpath_proc'])
         index_arr.append(item)
 
     print(index_arr)
