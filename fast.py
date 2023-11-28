@@ -183,7 +183,7 @@ signal_recorded = {}
 def clean_signal_recorded():
     while True:
         current_time = time.time()
-        expiration_time = 15 * 60  # 15 минут (или другой интервал, который вам нужен)
+        expiration_time = 39 * 60  # 15 минут (или другой интервал, который вам нужен)
         for symbol, timestamp in list(signal_recorded.items()):
             if current_time - timestamp > expiration_time:
                 del signal_recorded[symbol]
@@ -229,8 +229,10 @@ while True:
 
                             t_vol = this_time - time_signal
 
+
                             # Сигнал большого обьема----------------------------
-                            if t_vol.total_seconds() <= 45000:  # 900 секунд = 15 минут
+                            if t_vol.total_seconds() <= 4900:  # 900 секунд = 15 минут
+
                                 for symb in symb_index:
                                     if symb['symbol'] == sym:
                                         price = symb['price']
@@ -264,6 +266,10 @@ while True:
                                 print(sym)
                                 # Устанавливаем флаг как метку времени текущего актива
                                 signal_recorded[sym] = time.time()
+
+                else:
+                    continue
+
 
 
             except ZeroDivisionError as err:
