@@ -6,7 +6,7 @@ import os
 
 token = '6419893616:AAG-tbu524ZN7IGIulbJA_ZxNLykdaJWeU0'
 bot = telebot.TeleBot(token, parse_mode = None)
-users_id = [412850740]
+users_id = [412850740, 878760195]
 
 def send_message(txt_file):
     if os.stat(txt_file).st_size > 0:
