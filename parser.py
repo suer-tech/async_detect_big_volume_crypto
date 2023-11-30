@@ -28,12 +28,6 @@ def get_price(name, url, xpath, xpath_proc):
     proc = wait.until(EC.visibility_of_element_located((By.XPATH, xpath_proc))).text
     return [name, price, proc]
 
-def get_price_com(name, url, xpath, xpath_proc):
-    driver.get(url)
-    wait = WebDriverWait(driver, 10)
-    price = wait.until(EC.visibility_of_element_located((By.XPATH, f"//*[@class='{xpath}']"))).text
-    proc = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, xpath_proc))).text
-    return [name, price, proc]
 
 # Функция для форматирования чисел
 def format_number(input_str):
@@ -104,3 +98,5 @@ while True:
     get_crypto()
 
     time.sleep(900)
+
+
