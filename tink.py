@@ -1,5 +1,6 @@
+from datetime import datetime
+import pytz
 import re
-
 from tinkoff.invest.services import MarketDataStreamManager
 
 from tinkoff.invest import (
@@ -43,27 +44,41 @@ def subscribe_and_save_price(asset, result_prices_arr):
                 )
             ]
         )
+        attempts = 0
+        max_attempts = 5
 
-        for marketdata in market_data_stream:
-            if marketdata.candle:
-                last_price = marketdata.candle.close
+        while attempts < max_attempts:
+            for marketdata in market_data_stream:
+                if marketdata.candle:
+                    last_price = marketdata.candle.close
 
-                last_price_units = last_price.units
-                last_price_nano = last_price.nano
+                    last_price_units = last_price.units
+                    last_price_nano = last_price.nano
 
-                # Преобразование в число с учетом nano
-                numeric_value = float(f"{last_price_units}.{last_price_nano}")
+                    # Преобразование в число с учетом nano
+                    numeric_value = float(f"{last_price_units}.{last_price_nano}")
 
 
-                if asset['code'] not in result_prices_arr:
+                    if asset['code'] not in result_prices_arr:
 
-                    print(numeric_value)
-                    return numeric_value
-                else:
-                    return None
+                        print(numeric_value)
+                        return numeric_value
+                    else:
+                        return None
+            attempts += 1
+
+        print(f"Unable to get price for {asset['code']} after {max_attempts} attempts.")
+        return None
 
 
 def calculate_difference(currience, basket_price):
+    now_utc = datetime.now(pytz.utc)
+    # Преобразование времени в московское время
+    moscow_timezone = pytz.timezone("Europe/Moscow")
+    moscow_time = now_utc.astimezone(moscow_timezone)
+    # Удаление секунд и микросекунд
+    moscow_time = moscow_time.replace(second=0, microsecond=0)
+
     if currience == usd:
         quarterly = 'Si'
         perpetual = 'USDRUBF'
@@ -104,17 +119,7 @@ def calculate_difference(currience, basket_price):
 
         # Вычисляем разницу
         difference = "{:.3f}".format(value_third - value_second)
-        result = f"Спред {quarterly} - {perpetual}: {difference}\n"
-
-        if currience != eur:
-            if float(second_element) > float(first_element):
-                difference1 = f"{perpetual}: {'{:.3f}'.format(value_second)} > cпот: {'{:.3f}'.format(value_first)}\n"
-            if float(second_element) < float(first_element):
-                difference1 = f"Cпот: {'{:.3f}'.format(value_first)} > {perpetual}: {'{:.3f}'.format(value_second)}\n"
-            if '{:.3f}'.format(float(second_element)) == '{:.3f}'.format(float(first_element)):
-                difference1 = f"Cпот: {'{:.3f}'.format(value_first)} = {perpetual}: {'{:.3f}'.format(value_second)}\n"
-
-            result = result + difference1
+        result = f"[{moscow_time}, {difference}]"
 
         print(result)
 
@@ -127,26 +132,38 @@ def write_spread(currience, diff):
     if currience == cny:
         txt = 'cny.txt'
 
-    with open(txt, 'w', encoding='utf-8') as file:
-        pass
-        file.write(diff)
+    with open(txt, 'a', encoding='utf-8') as file:
+        spread_obj = {"data": diff}
+        spread_str = json.dumps(spread_obj, ensure_ascii=False)  # Преобразование в строку JSON
+        file.write(spread_str + '\n')  # Запись строки в файл с добавлением новой строки
+
+def extract_i(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return float(data['data'].split(',')[1].strip())
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON in file {file_path}: {e}")
+        return None
 
 def write_all_spread():
-    currencies = ['USD', 'EUR', 'CNY']
+    usd_file_path = 'usd.txt'
+    eur_file_path = 'eur.txt'
+    cny_file_path = 'cny.txt'
+    output_file_path = 'all_spread.txt'
 
-    with open('all_spread.txt', 'w', encoding='utf-8') as all_file:
-        for currency in currencies:
-            file_name = f'{currency}.txt'
-            with open(file_name, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
+    x = extract_i(usd_file_path)
+    y = extract_i(eur_file_path)
+    z = extract_i(cny_file_path)
 
-                if lines:
-                    last_line = json.loads(lines[-1])
-                    print(last_line)
-                    spread_value = re.search(r'\d+\.\d+', last_line['data']).group()
-                    spread_str = f"{currency.upper()}: {float(spread_value):.3f}\n"
-                    all_file.write(spread_str)
+    if None in (x, y, z):
+        print("Error extracting values from files. Check the file contents.")
+        return
 
+    with open(output_file_path, 'w') as output_file:
+        output_file.write(f'USD: {x}\nEUR: {y}\nCNY: {z}')
+
+    print('Data successfully written to all_spread.txt.')
 
 
 
@@ -178,11 +195,6 @@ cny = (
     {'code': 'FUTCNYRUBF00'},
     {'code': 'FUTCNY122300'}  # SIZ3
 )
-
-# Создаем файлы для оповещения по сигналу
-createTxtFile('USD.txt')
-createTxtFile('EUR.txt')
-createTxtFile('CNY.txt')
 
 
 while True:
@@ -244,4 +256,4 @@ while True:
     write_all_spread()
 
 
-    time.sleep(2)
+    time.sleep(900)
