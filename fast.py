@@ -289,42 +289,42 @@ while True:
             time.sleep(3)
             pass
         time.sleep(5)
-    # except requests.exceptions.ConnectionError as err:
-    #     print('Connection reset by peer')
-    #     with open('error.txt', 'w') as fw:
-    #         json.dump('Connection reset by peer', fw)
-    #         time.sleep(3)
-    #         pass
-    #     time.sleep(5)
-    # except binance.error.ServerError as err:
-    #     print('binance.error.ServerError')
-    #     with open('error.txt', 'w') as fw:
-    #         json.dump('binance.error.ServerError', fw)
-    #         time.sleep(3)
-    #         pass
-    #     time.sleep(5)
-    #
-    # except TypeError as err:
-    #     print('TypeError')
-    #     with open('error.txt', 'w') as fw:
-    #         json.dump('TypeError', fw)
-    #         time.sleep(3)
-    #         pass
-    #     time.sleep(5)
-    # except ReadTimeoutError as err:
-    #     print('ReadTimeoutError')
-    #     with open('error.txt', 'w') as fw:
-    #         json.dump('ReadTimeoutError', fw)
-    #         time.sleep(3)
-    #         pass
-    #     time.sleep(5)
-    # except json.decoder.JSONDecodeError as err:
-    #     print('json.decoder.JSONDecodeError')
-    #     with open('error.txt', 'w') as fw:
-    #         json.dump('json.decoder.JSONDecodeError', fw)
-    #         time.sleep(3)
-    #         pass
-    #     time.sleep(5)
+    except requests.exceptions.ConnectionError as err:
+        print('Connection reset by peer')
+        with open('error.txt', 'w') as fw:
+            json.dump('Connection reset by peer', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except binance.error.ServerError as err:
+        print('binance.error.ServerError')
+        with open('error.txt', 'w') as fw:
+            json.dump('binance.error.ServerError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+
+    except TypeError as err:
+        print('TypeError')
+        with open('error.txt', 'w') as fw:
+            json.dump('TypeError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except ReadTimeoutError as err:
+        print('ReadTimeoutError')
+        with open('error.txt', 'w') as fw:
+            json.dump('ReadTimeoutError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except json.decoder.JSONDecodeError as err:
+        print('json.decoder.JSONDecodeError')
+        with open('error.txt', 'w') as fw:
+            json.dump('json.decoder.JSONDecodeError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
     except urllib3.exceptions.MaxRetryError as err:
         print('urllib3.exceptions.MaxRetryError')
         with open('error.txt', 'w') as fw:

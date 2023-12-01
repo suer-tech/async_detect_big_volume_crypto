@@ -47,55 +47,113 @@ def format_number(input_str):
 
 
 while True:
+    try:
 
-    curr_arr = []
-    for curr in currencies:
-        item = get_price(curr['name'], curr['url'], curr['xpath'], curr['xpath_proc'])
-        curr_arr.append(item)
+        curr_arr = []
+        for curr in currencies:
+            item = get_price(curr['name'], curr['url'], curr['xpath'], curr['xpath_proc'])
+            curr_arr.append(item)
 
-    print(curr_arr)
+        print(curr_arr)
 
-    comoditi_arr = []
-    for comod in comodities:
-        item = get_price(comod['name'], comod['url'], comod['xpath'], comod['xpath_proc'])
-        comoditi_arr.append(item)
+        comoditi_arr = []
+        for comod in comodities:
+            item = get_price(comod['name'], comod['url'], comod['xpath'], comod['xpath_proc'])
+            comoditi_arr.append(item)
 
-    print(comoditi_arr)
+        print(comoditi_arr)
 
-    index_arr = []
-    for ind in index:
-        item = get_price(ind['name'], ind['url'], ind['xpath'], ind['xpath_proc'])
-        index_arr.append(item)
+        index_arr = []
+        for ind in index:
+            item = get_price(ind['name'], ind['url'], ind['xpath'], ind['xpath_proc'])
+            index_arr.append(item)
 
-    print(index_arr)
-
-
-
-    # Открываем файл для записи
-    with open('output.txt', 'w') as file:
-        file.write("Валюты:\n")
-        for currency in curr_arr:
-            formatted_value = format_number(currency[1])
-            formatted_proc = format_number(currency[2])
-            proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
-            file.write(f"{currency[0]}: {formatted_value}  {proc_without_brackets}%\n")
-
-        file.write("\nТовары:\n")
-        for comodity in comoditi_arr:
-            formatted_value = format_number(comodity[1])
-            formatted_proc = format_number(comodity[2])
-            proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
-            file.write(f"{comodity[0]}: {formatted_value}  {proc_without_brackets}%\n")
-
-        file.write("\nИндексы:\n")
-        for ind in index_arr:
-            formatted_value = format_number(ind[1])
-            formatted_proc = format_number(ind[2])
-            proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
-            file.write(f"{ind[0]}: {formatted_value}  {proc_without_brackets}%\n")
+        print(index_arr)
 
 
-    get_crypto()
+
+        # Открываем файл для записи
+        with open('output.txt', 'w') as file:
+            file.write("Валюты:\n")
+            for currency in curr_arr:
+                formatted_value = format_number(currency[1])
+                formatted_proc = format_number(currency[2])
+                proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
+                file.write(f"{currency[0]}: {formatted_value}  {proc_without_brackets}%\n")
+
+            file.write("\nТовары:\n")
+            for comodity in comoditi_arr:
+                formatted_value = format_number(comodity[1])
+                formatted_proc = format_number(comodity[2])
+                proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
+                file.write(f"{comodity[0]}: {formatted_value}  {proc_without_brackets}%\n")
+
+            file.write("\nИндексы:\n")
+            for ind in index_arr:
+                formatted_value = format_number(ind[1])
+                formatted_proc = format_number(ind[2])
+                proc_without_brackets = formatted_proc.replace("(", "").replace(")", "")
+                file.write(f"{ind[0]}: {formatted_value}  {proc_without_brackets}%\n")
+
+
+        get_crypto()
+
+    except binance.error.ClientError as err:
+        print('ReduceOnly Order is rejected')
+        with open('error.txt', 'w') as fw:
+            json.dump('ReduceOnly Order is rejected', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except requests.exceptions.ConnectionError as err:
+        print('Connection reset by peer')
+        with open('error.txt', 'w') as fw:
+            json.dump('Connection reset by peer', fw)
+            time.sleep(3)
+            pass
+    except requests.exceptions.ConnectTimeout as err:
+        print('Connection reset by peer')
+        with open('error.txt', 'w') as fw:
+            json.dump('Connection reset by peer', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except binance.error.ServerError as err:
+        print('binance.error.ServerError')
+        with open('error.txt', 'w') as fw:
+            json.dump('binance.error.ServerError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+
+    except TypeError as err:
+        print('TypeError')
+        with open('error.txt', 'w') as fw:
+            json.dump('TypeError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except ReadTimeoutError as err:
+        print('ReadTimeoutError')
+        with open('error.txt', 'w') as fw:
+            json.dump('ReadTimeoutError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except json.decoder.JSONDecodeError as err:
+        print('json.decoder.JSONDecodeError')
+        with open('error.txt', 'w') as fw:
+            json.dump('json.decoder.JSONDecodeError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
+    except urllib3.exceptions.MaxRetryError as err:
+        print('urllib3.exceptions.MaxRetryError')
+        with open('error.txt', 'w') as fw:
+            json.dump('urllib3.exceptions.MaxRetryError', fw)
+            time.sleep(3)
+            pass
+        time.sleep(5)
 
     time.sleep(900)
 
