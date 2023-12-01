@@ -138,13 +138,20 @@ def write_spread(currience, diff):
         file.write(spread_str + '\n')  # Запись строки в файл с добавлением новой строки
 
 def extract_i(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-            return float(data['data'].split(',')[1].strip())
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON in file {file_path}: {e}")
-        return None
+    values = []
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            try:
+                data = json.loads(line)
+                value = float(data['data'].split(',')[1].strip()[1:-1])
+                values.append(value)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON in file {file_path}: {e}")
+            except (IndexError, ValueError) as e:
+                print(f"Error extracting value from file {file_path}: {e}")
+
+    return values
 
 def write_all_spread():
     usd_file_path = 'usd.txt'
@@ -152,16 +159,18 @@ def write_all_spread():
     cny_file_path = 'cny.txt'
     output_file_path = 'all_spread.txt'
 
-    x = extract_i(usd_file_path)
-    y = extract_i(eur_file_path)
-    z = extract_i(cny_file_path)
+    x_values = extract_i(usd_file_path)
+    y_values = extract_i(eur_file_path)
+    z_values = extract_i(cny_file_path)
 
-    if None in (x, y, z):
+    if None in (x_values, y_values, z_values):
         print("Error extracting values from files. Check the file contents.")
         return
 
     with open(output_file_path, 'w') as output_file:
-        output_file.write(f'USD: {x}\nEUR: {y}\nCNY: {z}')
+        output_file.write(f'USD: {sum(x_values)/len(x_values):.3f}\n')
+        output_file.write(f'EUR: {sum(y_values)/len(y_values):.3f}\n')
+        output_file.write(f'CNY: {sum(z_values)/len(z_values):.3f}\n')
 
     print('Data successfully written to all_spread.txt.')
 
