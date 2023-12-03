@@ -231,7 +231,7 @@ while True:
 
 
                             # Сигнал большого обьема----------------------------
-                            if t_vol.total_seconds() <= 4900:  # 900 секунд = 15 минут
+                            if t_vol.total_seconds() <= 45000:  # 900 секунд = 15 минут
 
                                 for symb in symb_index:
                                     if symb['symbol'] == sym:
