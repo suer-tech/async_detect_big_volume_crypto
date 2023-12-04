@@ -208,61 +208,65 @@ cny = (
 
 while True:
 
-
     try:
-        f = open('sig_proc.txt', 'r')
-    except FileNotFoundError as err:
-        with open('sig_proc.txt', 'w') as fw:
-            pass
 
-    # Создайте словарь для сохранения цен активов
-    usd_prices = {}
-    eur_prices = {}
-    cny_prices = {}
+        try:
+            f = open('sig_proc.txt', 'r')
+        except FileNotFoundError as err:
+            with open('sig_proc.txt', 'w') as fw:
+                pass
 
-    # Подпишитесь на стакан для каждого актива
-    for asset in usd:
-        if asset['code'] not in usd:
-            price = subscribe_and_save_price(asset, usd_prices)
-            if price != None:
-                usd_prices[asset['code']] = price
-    print(usd_prices)
+        # Создайте словарь для сохранения цен активов
+        usd_prices = {}
+        eur_prices = {}
+        cny_prices = {}
 
-    # В asset_prices будут сохранены цены активов
-    diff = calculate_difference(usd, usd_prices)
-    if diff is not None:
-        write_spread(usd, diff)
+        # Подпишитесь на стакан для каждого актива
+        for asset in usd:
+            if asset['code'] not in usd:
+                price = subscribe_and_save_price(asset, usd_prices)
+                if price != None:
+                    usd_prices[asset['code']] = price
+        print(usd_prices)
 
-
-    # Подпишитесь на стакан для каждого актива
-    for asset in eur:
-        if asset['code'] not in eur:
-            price = subscribe_and_save_price(asset, eur_prices)
-            if price != None:
-                eur_prices[asset['code']] = price
-    print(eur_prices)
-
-    # В asset_prices будут сохранены цены активов
-    diff = calculate_difference(eur, eur_prices)
-    if diff is not None:
-        write_spread(eur, diff)
+        # В asset_prices будут сохранены цены активов
+        diff = calculate_difference(usd, usd_prices)
+        if diff is not None:
+            write_spread(usd, diff)
 
 
-    # Подпишитесь на стакан для каждого актива
-    for asset in cny:
-        if asset['code'] not in cny:
-            price = subscribe_and_save_price(asset, cny_prices)
-            if price != None:
-                cny_prices[asset['code']] = price
-    print(cny_prices)
+        # Подпишитесь на стакан для каждого актива
+        for asset in eur:
+            if asset['code'] not in eur:
+                price = subscribe_and_save_price(asset, eur_prices)
+                if price != None:
+                    eur_prices[asset['code']] = price
+        print(eur_prices)
 
-    # В asset_prices будут сохранены цены активов
-    diff = calculate_difference(cny, cny_prices)
-    if diff is not None:
-        write_spread(cny, diff)
+        # В asset_prices будут сохранены цены активов
+        diff = calculate_difference(eur, eur_prices)
+        if diff is not None:
+            write_spread(eur, diff)
 
-    # Запись всех спредов в один файл
-    write_all_spread()
 
+        # Подпишитесь на стакан для каждого актива
+        for asset in cny:
+            if asset['code'] not in cny:
+                price = subscribe_and_save_price(asset, cny_prices)
+                if price != None:
+                    cny_prices[asset['code']] = price
+        print(cny_prices)
+
+        # В asset_prices будут сохранены цены активов
+        diff = calculate_difference(cny, cny_prices)
+        if diff is not None:
+            write_spread(cny, diff)
+
+        # Запись всех спредов в один файл
+        write_all_spread()
+
+
+    except tinkoff.invest.exceptions.RequestError as err:
+        time.sleep(5)
 
     time.sleep(900)
