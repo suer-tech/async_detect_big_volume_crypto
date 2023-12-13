@@ -268,5 +268,8 @@ while True:
 
     except tinkoff.invest.exceptions.RequestError as err:
         time.sleep(5)
-
+    except AttributeError as err:
+        time.sleep(5)
+    except RequestError as err:
+        time.sleep(5)
     time.sleep(900)
