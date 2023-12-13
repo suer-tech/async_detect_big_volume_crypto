@@ -266,10 +266,8 @@ while True:
         write_all_spread()
 
 
-    except tinkoff.invest.exceptions.RequestError as err:
+    except Exception as e:
+        print("Возникла непредвиденная ошибка.")
         time.sleep(5)
-    except AttributeError as err:
-        time.sleep(5)
-    except RequestError as err:
-        time.sleep(5)
+
     time.sleep(900)
