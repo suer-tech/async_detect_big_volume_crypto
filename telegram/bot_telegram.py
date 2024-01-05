@@ -5,7 +5,7 @@ from aiogram import Dispatcher, Bot, types
 from aiogram.dispatcher.filters import Text
 from aiogram.utils import executor
 from keyboard import greet_kb1
-from telegram.tg_config import users_id, token, fdv_crypto_dir_path, parser_dir_path, moex_dir_path
+from tg_config import users_id, token, fdv_crypto_dir_path, parser_dir_path, moex_dir_path
 
 from aiogram import Dispatcher
 bot = Bot(token)
@@ -29,12 +29,13 @@ async def remove_message_file(full_path):
     os.remove(full_path)
 
 
-async def polling_thread():
+async def polling_thread(fdv_crypto_dir_path):
     while True:
         await asyncio.sleep(1)
-        for file_name in os.listdir(fdv_crypto_dir_path):
-            full_path = os.path.join(fdv_crypto_dir_path, file_name)
-            if file_name.endswith('_signal.txt'):
+        files = [f for f in os.listdir(fdv_crypto_dir_path) if f.endswith('_signal.txt')]
+        if files:
+            for file_name in files:
+                full_path = os.path.join(fdv_crypto_dir_path, file_name)
                 await send_message(full_path)
 
 
@@ -60,8 +61,7 @@ if __name__ == "__main__":
     dp = Dispatcher(bot)
 
     # Запуск асинхронного потока для отправки сообщений
-    loop = asyncio.get_event_loop()
-    loop.create_task(polling_thread())
+    asyncio.run(polling_thread(fdv_crypto_dir_path))
 
     # Обработчики сообщений
     dp.register_message_handler(process_start_command, commands=['start'])
@@ -73,4 +73,4 @@ if __name__ == "__main__":
     dp.register_message_handler(lambda message: with_puree(message, moex_file_full_path), Text(equals="Спреды"))
 
     # Запуск бота
-    executor.start_polling(dp, loop=loop)
+    executor.start_polling(dp)
