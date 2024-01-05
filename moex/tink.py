@@ -8,7 +8,7 @@ from tinkoff.invest import (
     Client,
     SubscriptionInterval,
 )
-from moex.config import tinkoff
+from config import tinkoff
 
 TOKEN = tinkoff
 

@@ -57,12 +57,8 @@ async def with_puree(message: types.Message, file_name):
         await bot.send_message(message.chat.id, f"Произошла ошибка при чтении файла: {str(e)}")
 
 
-if __name__ == "__main__":
+async def main():
     dp = Dispatcher(bot)
-
-    # Запуск асинхронного потока для отправки сообщений
-    asyncio.run(polling_thread(fdv_crypto_dir_path))
-
     # Обработчики сообщений
     dp.register_message_handler(process_start_command, commands=['start'])
     index_file_full_path = os.path.join(parser_dir_path, 'output.txt')
@@ -72,5 +68,12 @@ if __name__ == "__main__":
     moex_file_full_path = os.path.join(moex_dir_path, 'all_spread.txt')
     dp.register_message_handler(lambda message: with_puree(message, moex_file_full_path), Text(equals="Спреды"))
 
-    # Запуск бота
-    executor.start_polling(dp)
+    await dp.start_polling()
+    await polling_thread(fdv_crypto_dir_path)
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())
+    loop.run_forever()
+
+
