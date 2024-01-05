@@ -1,6 +1,6 @@
 from statistics import median
 from bin_api import get_kline_data
-from fast_detect_volume_crypto.config import buy_sell_ratio_x
+from config import buy_sell_ratio_x
 
 
 async def calculate_all_kline_high_percent(session, params):

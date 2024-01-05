@@ -7,7 +7,7 @@ import aiohttp
 from bin_api import get_buy_sell_ratio, get_symbol_ticker
 from calculate import calculate_average_vol, calculate_all_kline_high_percent, calculate_median_kline_high, \
     check_last_vol_on_average_vol
-from fast_detect_volume_crypto.config import timefraim, limit, median_x
+from config import timefraim, limit, median_x
 from signals import create_new_signal, filter_recorded_signal, clean_signal_records
 from utility import convert_time
 
@@ -22,11 +22,11 @@ async def run_process(session, sym, all_ticker_list):
     }
 
     try:
-        volume_ratio = await get_buy_sell_ratio(session, params)  # получаем данные по обьемам всех свечек за период
+        volume_ratio = await get_buy_sell_ratio(session, params)
         if len(volume_ratio) == limit:
-            last_volume = volume_ratio[-2]  # получаем данные по обьемам последней закрытой свечки за период
+            last_volume = volume_ratio[-2]
             average_volume = await calculate_average_vol(
-                volume_ratio)  # сравниваем обьем на последней свечке и если он больше среднеиго то возвращаем эту свечку
+                volume_ratio)
             checked_last_volume = await check_last_vol_on_average_vol(average_volume, last_volume)
 
             if checked_last_volume:
@@ -36,12 +36,12 @@ async def run_process(session, sym, all_ticker_list):
                     "limit": limit,
                 }
                 all_kline_high = await calculate_all_kline_high_percent(session,
-                                                                        params)  # считаем высоту всех свечек за период
+                                                                        params)
 
                 if all_kline_high:
-                    last_kline_high = all_kline_high[-2]  # получаем высоту последней свечки за период
-                    value_last_kline_high = next(iter(last_kline_high.values()))  # получаем высоту последней свечки за период
-                    mediana = await calculate_median_kline_high(all_kline_high)  # считаем среднюю высоту свечки за период
+                    last_kline_high = all_kline_high[-2]
+                    value_last_kline_high = next(iter(last_kline_high.values()))
+                    mediana = await calculate_median_kline_high(all_kline_high)
 
                     if mediana * median_x > float(value_last_kline_high):
                         this_time = datetime.datetime.now()
@@ -62,30 +62,30 @@ async def run_process(session, sym, all_ticker_list):
     except ZeroDivisionError as err:
         print('ZeroDivisionError')
         return None
-    # except IndexError as err:
-    #     print('IndexError ')
-    #     return None
+    except IndexError as err:
+        print('IndexError ')
+        return None
 
 
 async def main():
     start_time = time.time()
 
     while True:
-        # try:
-        all_ticker_list = await get_symbol_ticker()
-        usdt_ticker_list = [ticker['symbol'] for ticker in all_ticker_list if ticker['symbol'].endswith('USDT')]
-        print(len(usdt_ticker_list))
+        try:
+            all_ticker_list = await get_symbol_ticker()
+            usdt_ticker_list = [ticker['symbol'] for ticker in all_ticker_list if ticker['symbol'].endswith('USDT')]
+            print(len(usdt_ticker_list))
 
-        ticker_list = list(filter(filter_recorded_signal, usdt_ticker_list))
+            ticker_list = list(filter(filter_recorded_signal, usdt_ticker_list))
 
-        async with aiohttp.ClientSession() as session:
-            tasks = [run_process(session, ticker, all_ticker_list) for ticker in ticker_list]
-            task_list = [asyncio.create_task(task) for task in tasks]
-            await asyncio.gather(*task_list)
+            async with aiohttp.ClientSession() as session:
+                tasks = [run_process(session, ticker, all_ticker_list) for ticker in ticker_list]
+                task_list = [asyncio.create_task(task) for task in tasks]
+                await asyncio.gather(*task_list)
 
-    # except Exception as e:
-    #     print("Возникла непредвиденная ошибка.")
-    #     await asyncio.sleep(5)
+        except Exception as e:
+            print("Возникла непредвиденная ошибка.")
+            await asyncio.sleep(5)
 
         end_time = time.time()
         elapsed_time = end_time - start_time

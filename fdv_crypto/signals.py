@@ -34,11 +34,11 @@ class Signal:
 
     async def write_signal(self) -> None:
         try:
-            async with aiofiles.open(f'{self.ticker}_signal', mode='r') as file:
+            async with aiofiles.open(f'{self.ticker}_signal.txt', mode='r') as file:
                 await file.read()
 
         except FileNotFoundError as err:
-            async with aiofiles.open(f'{self.ticker}_signal', encoding='utf-8', mode='w') as file:
+            async with aiofiles.open(f'{self.ticker}_signal.txt', encoding='utf-8', mode='w') as file:
                 mess = f"{emoji.emojize(':antenna_bars:Скачок объема торгов')}\n{emoji.emojize(':check_mark_button:')}{self.ticker}\n"
                 await file.write(mess)
                 await file.write(f"\nLong\n")

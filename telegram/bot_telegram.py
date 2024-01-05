@@ -5,17 +5,16 @@ from aiogram import Dispatcher, Bot, types
 from aiogram.dispatcher.filters import Text
 from aiogram.utils import executor
 from keyboard import greet_kb1
+from telegram.tg_config import users_id, token, fdv_crypto_dir_path, parser_dir_path, moex_dir_path
 
-token = '6419893616:AAG-tbu524ZN7IGIulbJA_ZxNLykdaJWeU0'
-bot = Bot(token)
 from aiogram import Dispatcher
+bot = Bot(token)
 
-users_id = [412850740, 878760195]
 
-
-async def send_message(txt_file):
-    if os.stat(txt_file).st_size > 0:
-        with open(txt_file, 'r', encoding='utf-8') as fr:
+async def send_message(full_path):
+    file = full_path
+    if os.stat(file).st_size > 0:
+        with open(file, 'r', encoding='utf-8') as fr:
             mess = fr.read()
         for user in users_id:
             try:
@@ -23,19 +22,20 @@ async def send_message(txt_file):
             except Exception as e:
                 print(f"Error sending message to user {user}: {str(e)}")
 
-        await remove_message_file(txt_file)
+        await remove_message_file(full_path)
 
 
-async def remove_message_file(txt_file):
-    os.remove(txt_file)
+async def remove_message_file(full_path):
+    os.remove(full_path)
 
 
 async def polling_thread():
     while True:
-        for file_name in os.listdir('..fast_detect_volume_crypto'):
+        await asyncio.sleep(1)
+        for file_name in os.listdir(fdv_crypto_dir_path):
+            full_path = os.path.join(fdv_crypto_dir_path, file_name)
             if file_name.endswith('_signal.txt'):
-                await send_message(file_name)
-                await asyncio.sleep(1)
+                await send_message(full_path)
 
 
 async def process_start_command(message: types.Message):
@@ -65,9 +65,12 @@ if __name__ == "__main__":
 
     # Обработчики сообщений
     dp.register_message_handler(process_start_command, commands=['start'])
-    dp.register_message_handler(lambda message: with_puree(message, "../parser/output.txt"), Text(equals="Индексы"))
-    dp.register_message_handler(lambda message: with_puree(message, "../parser/crypto.txt"), Text(equals="Крипто"))
-    dp.register_message_handler(lambda message: with_puree(message, "../moex/all_spread.txt"), Text(equals="Спреды"))
+    index_file_full_path = os.path.join(parser_dir_path, 'output.txt')
+    dp.register_message_handler(lambda message: with_puree(message, index_file_full_path), Text(equals="Индексы"))
+    crypto_file_full_path = os.path.join(parser_dir_path, 'crypto.txt')
+    dp.register_message_handler(lambda message: with_puree(message, crypto_file_full_path), Text(equals="Крипто"))
+    moex_file_full_path = os.path.join(moex_dir_path, 'all_spread.txt')
+    dp.register_message_handler(lambda message: with_puree(message, moex_file_full_path), Text(equals="Спреды"))
 
     # Запуск бота
     executor.start_polling(dp, loop=loop)

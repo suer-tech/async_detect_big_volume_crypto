@@ -6,30 +6,25 @@ from tinkoff.invest.services import MarketDataStreamManager
 from tinkoff.invest import (
     CandleInstrument,
     Client,
-    InfoInstrument,
     SubscriptionInterval,
 )
-from config import tinkoff
+from moex.config import tinkoff
 
 TOKEN = tinkoff
 
 #
 # def main():
 #     with Client(TOKEN) as client:
-#         client.getLatestPrices()
-#         inst = client.instruments.currencies()
+#         inst = client.instruments.find_instrument(query='Курс юань - рубль', api_trade_available_flag=True)
 #         print(inst)
 #         for cur in inst.instruments:
 #             print(cur)
 #             print('')
 # main()
-
 #
+
 import json
 import time
-import emoji
-
-
 
 
 def subscribe_and_save_price(asset, result_prices_arr):
@@ -153,26 +148,67 @@ def extract_i(file_path):
 
     return values
 
+
+
+def get_last_value(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            # Читаем все строки из файла
+            lines = file.readlines()
+
+            # Если файл пуст, возвращаем None
+            if not lines:
+                return None
+
+            # Извлекаем последнюю строку и используем регулярное выражение для поиска числа
+            last_line = lines[-1]
+            match = re.search(r'[-+]?\d*\.\d+', last_line)
+
+            if match:
+                value = float(match.group())
+                return value
+            else:
+                print(f"Error extracting value from {file_path}: No valid number found.")
+                return None
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+        return None
+    except Exception as e:
+        print(f"Error extracting value from {file_path}: {e}")
+        return None
+
+# Пример использования функции
+usd_file_path = 'usd.txt'
+last_value = get_last_value(usd_file_path)
+
+if last_value is not None:
+    print(f"Last value in {usd_file_path}: {last_value:.3f}")
+else:
+    print(f"Error getting last value from {usd_file_path}.")
+
+
+
 def write_all_spread():
     usd_file_path = 'usd.txt'
     eur_file_path = 'eur.txt'
     cny_file_path = 'cny.txt'
     output_file_path = 'all_spread.txt'
 
-    x_values = extract_i(usd_file_path)
-    y_values = extract_i(eur_file_path)
-    z_values = extract_i(cny_file_path)
+    x_value = get_last_value(usd_file_path)
+    y_value = get_last_value(eur_file_path)
+    z_value = get_last_value(cny_file_path)
 
-    if None in (x_values, y_values, z_values):
+    if None in (x_value, y_value, z_value):
         print("Error extracting values from files. Check the file contents.")
         return
 
     with open(output_file_path, 'w') as output_file:
-        output_file.write(f'USD: {sum(x_values)/len(x_values):.3f}\n')
-        output_file.write(f'EUR: {sum(y_values)/len(y_values):.3f}\n')
-        output_file.write(f'CNY: {sum(z_values)/len(z_values):.3f}\n')
+        output_file.write(f'USD: {x_value:.3f}\n')
+        output_file.write(f'EUR: {y_value:.3f}\n')
+        output_file.write(f'CNY: {z_value:.3f}\n')
 
     print('Data successfully written to all_spread.txt.')
+
 
 
 
@@ -188,21 +224,21 @@ usd = (
 
     {'code': 'BBG0013HGFT4'},  # USDRUB
     {'code': 'FUTUSDRUBF00'},
-    {'code': 'FUTSI1223000'}  # SIZ3
+    {'code': 'FUTSI0324000'}  # SIZ3
 )
 
 eur = (
 
 
     {'code': 'FUTEURRUBF00'},
-    {'code': 'FUTEU1223000'}  # SIZ3
+    {'code': 'FUTEU0324000'}  # SIZ3
 )
 
 cny = (
 
     {'code': 'BBG0013HRTL0'},  # USDRUB
     {'code': 'FUTCNYRUBF00'},
-    {'code': 'FUTCNY122300'}  # SIZ3
+    {'code': 'FUTCNY032400'}  # SIZ3
 )
 
 
