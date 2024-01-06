@@ -1,9 +1,12 @@
 import asyncio
 import os
 
+import aiohttp
 from aiogram import Dispatcher, Bot, types
 from aiogram.dispatcher.filters import Text
 from aiogram.utils import executor
+from aiohttp import ClientSession
+
 from keyboard import greet_kb1
 from tg_config import users_id, token, fdv_crypto_dir_path, parser_dir_path, moex_dir_path
 
@@ -68,12 +71,19 @@ async def main():
     moex_file_full_path = os.path.join(moex_dir_path, 'all_spread.txt')
     dp.register_message_handler(lambda message: with_puree(message, moex_file_full_path), Text(equals="Спреды"))
 
-    await dp.start_polling()
-    await polling_thread(fdv_crypto_dir_path)
+    try:
+        asyncio.create_task(dp.start_polling())
+        await polling_thread(fdv_crypto_dir_path)
+
+    except aiohttp.client_exceptions.ClientOSError as e:
+        print(f"ClientOSError error: {e}")
+
+        await bot.session.close()
+        bot.session = ClientSession()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.create_task(main())
+    loop.run_until_complete(main())
     loop.run_forever()
 
 
